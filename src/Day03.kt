@@ -40,103 +40,91 @@ fun main() {
 
     fun part2(input: List<String>): Int {
         var oxygenFound = false
-        var oxygenSearch = mutableListOf<Int>()
+        var oxygenSearch: MutableList<Int>
         var co2Found = false
-        var co2Search = mutableListOf<Int>()
-        var initial = true
+        var co2Search: MutableList<Int>
         var pos = 0
 
-        while (!oxygenFound || !co2Found) {
-            val count0 = mutableListOf<Int>()
-            val count1 = mutableListOf<Int>()
-            for (i in 0..input.size - 1) {
-                val c = input[i][pos]
-                if (c == '0') {
-                    count0.add(i)
-                } else if (c == '1') {
-                    count1.add(i)
+        fun getOccurrences(search: List<String>, indices: List<Int>, searchPos: Int, target: Char): MutableList<Int> {
+            val result = mutableListOf<Int>()
+            for (i in indices) {
+                if (search[i][searchPos] == target) {
+                    result.add(i)
                 }
             }
+            return result
+        }
 
+        val initialCount0 = getOccurrences(input, input.indices.toList(), pos, '0')
+        val initialCount1 = getOccurrences(input, input.indices.toList(), pos, '1')
+        if (initialCount0.size > initialCount1.size) {
+            // count0 > count1: count0 is oxygen candidate, count1 is co2 candidate
+            oxygenSearch = initialCount0
+            co2Search = initialCount1
+        } else {
+            // count0 <= count1: count1 is oxygen candidate, count0 is co2 candidate
+            oxygenSearch = initialCount1
+            co2Search = initialCount0
+        }
+
+        pos = 1
+        while (!oxygenFound) {
+            val count0 = getOccurrences(input, oxygenSearch, pos, '0')
+            val count1 = getOccurrences(input, oxygenSearch, pos, '1')
+            val newList = mutableListOf<Int>()
             if (count0.size > count1.size) {
                 // count0 > count1: count0 is oxygen candidate, count1 is co2 candidate
-                if (!oxygenFound) {
-                    val newList = mutableListOf<Int>()
-                    for (index in count0) {
-                        if (initial) {
-                            newList.add(index)
-                            continue
-                        }
-
-                        if (oxygenSearch.contains(index)) {
-                            newList.add(index)
-                        }
+                for (index in count0) {
+                    if (oxygenSearch.contains(index)) {
+                        newList.add(index)
                     }
-                    oxygenSearch = newList
-                }
-                if (!co2Found) {
-                    val newList = mutableListOf<Int>()
-                    for (index in count1) {
-                        if (initial) {
-                            newList.add(index)
-                            continue
-                        }
-
-                        if (co2Search.contains(index)) {
-                            newList.add(index)
-                        }
-                    }
-                    co2Search = newList
                 }
             } else {
                 // count0 <= count1: count1 is oxygen candidate, count0 is co2 candidate
-                if (!oxygenFound) {
-                    val newList = mutableListOf<Int>()
-                    for (index in count1) {
-                        if (initial) {
-                            newList.add(index)
-                            continue
-                        }
-
-                        if (oxygenSearch.contains(index)) {
-                            newList.add(index)
-                        }
+                for (index in count1) {
+                    if (oxygenSearch.contains(index)) {
+                        newList.add(index)
                     }
-                    oxygenSearch = newList
-                }
-                if (!co2Found) {
-                    val newList = mutableListOf<Int>()
-                    for (index in count0) {
-                        if (initial) {
-                            newList.add(index)
-                            continue
-                        }
-
-                        if (co2Search.contains(index)) {
-                            newList.add(index)
-                        }
-                    }
-                    co2Search = newList
                 }
             }
-
-            if (co2Search.size == 1) {
-                co2Found = true
-            }
-
+            oxygenSearch = newList
             if (oxygenSearch.size == 1) {
                 oxygenFound = true
             }
+            pos++
+        }
 
-            println("pos: $pos oxygenSearch: $oxygenSearch co2Search: $co2Search count0>count1: ${count0.size > count1.size} count0: $count0 count1: $count1")
-            initial = false
+        pos = 1
+        while (!co2Found) {
+            val count0 = getOccurrences(input, co2Search, pos, '0')
+            val count1 = getOccurrences(input, co2Search, pos, '1')
+            val newList = mutableListOf<Int>()
+            if (count0.size > count1.size) {
+                // count0 > count1: count0 is oxygen candidate, count1 is co2 candidate
+                for (index in count1) {
+                    if (co2Search.contains(index)) {
+                        newList.add(index)
+                    }
+                }
+            } else {
+                // count0 <= count1: count1 is oxygen candidate, count0 is co2 candidate
+                for (index in count0) {
+                    if (co2Search.contains(index)) {
+                        newList.add(index)
+                    }
+                }
+            }
+            co2Search = newList
+            if (co2Search.size == 1) {
+                co2Found = true
+            }
             pos++
         }
 
         val oxygenVal = Integer.parseInt(input[oxygenSearch[0]], 2)
         val co2Val = Integer.parseInt(input[co2Search[0]], 2)
-        println("oxygenSearch: $oxygenSearch co2Search: $co2Search")
-        println("oxygenVal: $oxygenVal co2Val: $co2Val")
+        // println("oxygenSearch: $oxygenSearch co2Search: $co2Search")
+        // println("oxygenVal: $oxygenVal co2Val: $co2Val")
         return oxygenVal * co2Val
     }
 
@@ -147,5 +135,5 @@ fun main() {
 
     val input = readInput("Day03")
     println(part1(input))
-//    println(part2(input))
+    println(part2(input))
 }
